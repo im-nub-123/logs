@@ -1,0 +1,82 @@
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.Mockito.*;
+
+public class PaymentClientTest {
+
+    // Test 1: Mock Default Constructor
+    @Test
+    void test01_mockDefaultConstructor() {
+
+        try (MockedConstruction<PaymentGateway> mocked =
+                     mockConstruction(PaymentGateway.class,
+                             (mock, context) -> {
+                                 when(mock.makePayment(anyDouble()))
+                                         .thenReturn("Fake Cash Payment");
+                             })) {
+
+            PaymentClient client = new PaymentClient();
+
+            String result = client.process(100.0);
+
+            assertEquals("Fake Cash Payment", result);
+        }
+    }
+
+    // Test 2: Mock Parameterized Constructor
+    @Test
+    void test02_mockParameterizedConstructor() {
+
+        try (MockedConstruction<PaymentGateway> mocked =
+                     mockConstruction(PaymentGateway.class,
+                             (mock, context) -> {
+                                 when(mock.makePayment(anyDouble()))
+                                         .thenReturn("Simulated Stripe Response");
+                             })) {
+
+            PaymentClient client = new PaymentClient("Stripe");
+
+            String result = client.process(500.0);
+
+            assertEquals("Simulated Stripe Response", result);
+        }
+    }
+
+    // Test 3: Mock Multiple Constructors
+    @Test
+    void test03_mockMultipleConstructors() {
+
+        try (MockedConstruction<PaymentGateway> mocked =
+                     mockConstruction(PaymentGateway.class)) {
+
+            PaymentClient client1 = new PaymentClient();
+            PaymentClient client2 = new PaymentClient("Stripe");
+            PaymentClient client3 = new PaymentClient("PayPal");
+
+            // Verify exactly three constructor calls
+            assertEquals(3, mocked.constructed().size());
+        }
+    }
+
+    // Test 4: Mock Method
+    @Test
+    void test04_mockMethod() {
+
+        PaymentGateway gateway = mock(PaymentGateway.class);
+
+        when(gateway.makePayment(anyDouble()))
+                .thenReturn("Mocked Payment Success");
+
+        PaymentClient client = new PaymentClient(gateway);
+
+        String result = client.process(250.0);
+
+        assertEquals("Mocked Payment Success", result);
+
+        verify(gateway).makePayment(250.0);
+    }
+}

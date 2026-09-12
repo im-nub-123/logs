@@ -5,41 +5,34 @@ const weatherData = {
     "New York": 25
 };
 
-
-// Mock API
 function fetchWeather(city) {
     return new Promise((resolve, reject) => {
 
-        if (!city) {
+        if (!city || city.trim() === "") {
             reject("City name is missing");
-        } 
-        else if (weatherData[city] === undefined) {
-            reject("City not found");
-        } 
-        else {
-            resolve(weatherData[city]);
+        } else {
+            const cityName = city.trim();
+
+            const matchingCity = Object.keys(weatherData).find(
+                key => key.toLowerCase() === cityName.toLowerCase()
+            );
+
+            if (matchingCity) {
+                resolve(weatherData[matchingCity]);
+            } else {
+                reject("City not found");
+            }
         }
     });
 }
 
-
-// Async function
 async function getWeather(city) {
     try {
         const temperature = await fetchWeather(city);
-
         console.log(`Temperature in ${city} is ${temperature}°C`);
-    } 
-    catch (error) {
+    } catch (error) {
         console.log(`Failed to fetch weather: ${error}`);
-    } 
-    finally {
+    } finally {
         console.log("Weather check completed");
     }
 }
-
-
-// Test cases
-getWeather("Sydney");
-getWeather("");
-getWeather("Brazil");
